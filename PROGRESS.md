@@ -1,11 +1,11 @@
 # 진행 상황 (Progress Tracker)
 
 ## Phase 1: 개발 환경 세팅 (Project Setup)
-- [ ] Next.js 14 (App Router) 프로젝트 초기화
-- [ ] Tailwind CSS, Zustand, TanStack Query 패키지 설치 및 설정
-- [ ] Chart 라이브러리 (Recharts 또는 ECharts) 설치
-- [ ] `PROJECT_SPEC.md`에 정의된 디렉토리 구조 생성 (`src/components`, `src/hooks`, `src/store`, 등)
-- [ ] 환경 변수(`.env`) 설정 (ECOS API Key 등)
+- [x] Next.js 14 (App Router) 프로젝트 초기화
+- [x] Tailwind CSS, Zustand, TanStack Query 패키지 설치 및 설정
+- [x] Chart 라이브러리 (Recharts 또는 ECharts) 설치
+- [x] `PROJECT_SPEC.md`에 정의된 디렉토리 구조 생성 (`src/components`, `src/hooks`, `src/store`, 등)
+- [x] 환경 변수(`.env`) 설정 (ECOS API Key 등)
 
 ## Phase 2: UI 퍼블리싱 및 구조화 (UI & Layout)
 - [ ] `reference_ui/index.html` 기반으로 글로벌 스타일 (`index.css` 등) 이식
