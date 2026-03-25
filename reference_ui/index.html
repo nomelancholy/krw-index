@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MACRO TECTONICS | Financial Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --basalt-obsidian: #0a0a0b;
+            --basalt-deep: #161618;
+            --basalt-crust: #242426;
+            --lava-accent: #ff4d00;
+            --sulfur-accent: #d4ff00;
+            --glacier-accent: #00f2ff;
+            --tectonic-white: #e0e0e0;
+            --grain-opacity: 0.04;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: crosshair;
+        }
+
+        body {
+            background-color: var(--basalt-obsidian);
+            color: var(--tectonic-white);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Grained Texture Overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: var(--grain-opacity);
+        }
+
+        /* Layout */
+        .tectonic-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: auto 1fr;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--basalt-crust);
+        }
+
+        .brand h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .brand p {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--lava-accent);
+            letter-spacing: 2px;
+        }
+
+        /* Sidebar Controls */
+        .sidebar {
+            background: var(--basalt-deep);
+            padding: 30px;
+            border-radius: 4px;
+            border-left: 1px solid var(--basalt-crust);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--lava-accent);
+        }
+
+        .control-group {
+            margin-bottom: 40px;
+        }
+
+        .control-group h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            color: #666;
+            letter-spacing: 3px;
+        }
+
+        /* Tectonic Checkbox */
+        .check-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid transparent;
+        }
+
+        .check-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        .check-item input[type="checkbox"] {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 1px solid #444;
+            margin-right: 15px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .check-item input:checked {
+            background: var(--accent-color, var(--lava-accent));
+            border-color: var(--accent-color, var(--lava-accent));
+        }
+
+        .check-item label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            flex-grow: 1;
+        }
+
+        /* Main Display Area */
+        .main-display {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chart-stage {
+            flex-grow: 1;
+            background: var(--basalt-deep);
+            border-radius: 4px;
+            padding: 40px;
+            position: relative;
+            border: 1px solid var(--basalt-crust);
+            min-height: 500px;
+        }
+
+        .data-fragments {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .fragment-card {
+            background: var(--basalt-deep);
+            padding: 20px;
+            border: 1px solid var(--basalt-crust);
+            transition: 0.4s;
+        }
+
+        .fragment-card:hover {
+            border-color: #444;
+            transform: translateY(-5px);
+        }
+
+        .fragment-card .label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .fragment-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .fragment-card .delta {
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 5px;
+        }
+
+        .delta.up {
+            color: #00ff88;
+        }
+
+        .delta.down {
+            color: var(--lava-accent);
+        }
+
+        /* SVG Grain Filter */
+        #grain-filter {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <svg id="grain-filter">
+        <filter id="noise">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+            <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.4 0" />
+        </filter>
+    </svg>
+    <div class="noise-overlay" style="filter: url(#noise);"></div>
+
+    <div class="tectonic-container">
+        <header>
+            <div class="brand">
+                <p>// MACRO_TECTONICS_V1.0</p>
+                <h1>ECONOMIC STRATA</h1>
+            </div>
+            <div class="meta-data"
+                style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #555; text-align: right;">
+                LATEST PULL: <span id="timestamp">2023.10.27 14:02:33</span><br>
+                SOURCE: REUTERS/BOK/KRX API
+            </div>
+        </header>
+
+        <aside class="sidebar">
+            <div class="control-group">
+                <h3>Select Data Layers</h3>
+
+                <div class="check-item" style="--accent-color: #ff4d00;">
+                    <input type="checkbox" id="usd-krw" checked data-index="0">
+                    <label for="usd-krw">USD / KRW</label>
+                </div>
+
+                <div class="check-item" style="--accent-color: #d4ff00;">
+                    <input type="checkbox" id="dxy" data-index="1">
+                    <label for="dxy">Dollar Index (DXY)</label>
+                </div>
+
+                <div class="check-item" style="--accent-color: #00f2ff;">
+                    <input type="checkbox" id="fx-res" data-index="2">
+                    <label for="fx-res">FX Reserves</label>
+                </div>
+
+                <div class="check-item" style="--accent-color: #ff00f2;">
+                    <input type="checkbox" id="kospi" data-index="3">
+                    <label for="kospi">KOSPI</label>
+                </div>
+
+                <div class="check-item" style="--accent-color: #ffffff;">
+                    <input type="checkbox" id="kosdaq" data-index="4">
+                    <label for="kosdaq">KOSDAQ</label>
+                </div>
+
+                <div class="check-item" style="--accent-color: #5555ff;">
+                    <input type="checkbox" id="adj-rate" data-index="5">
+                    <label for="adj-rate">ADJ. Rate (Calibrated)</label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Temporal Resolution</h3>
+                <div style="display: flex; gap: 5px;">
+                    <button
+                        style="background: var(--basalt-crust); border: none; color: white; padding: 5px 10px; font-family: 'JetBrains Mono'; font-size: 0.6rem;">1D</button>
+                    <button
+                        style="background: var(--lava-accent); border: none; color: white; padding: 5px 10px; font-family: 'JetBrains Mono'; font-size: 0.6rem;">1W</button>
+                    <button
+                        style="background: var(--basalt-crust); border: none; color: white; padding: 5px 10px; font-family: 'JetBrains Mono'; font-size: 0.6rem;">1M</button>
+                    <button
+                        style="background: var(--basalt-crust); border: none; color: white; padding: 5px 10px; font-family: 'JetBrains Mono'; font-size: 0.6rem;">1Y</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-display">
+            <section class="chart-stage">
+                <canvas id="mainChart"></canvas>
+            </section>
+
+            <section class="data-fragments">
+                <div class="fragment-card">
+                    <div class="label">USD/KRW</div>
+                    <div class="value" id="val-usd-krw">1,342.50</div>
+                    <div class="delta down">-0.42%</div>
+                </div>
+                <div class="fragment-card">
+                    <div class="label">DXY</div>
+                    <div class="value" id="val-dxy">106.24</div>
+                    <div class="delta up">+0.12%</div>
+                </div>
+                <div class="fragment-card">
+                    <div class="label">KOSPI</div>
+                    <div class="value" id="val-kospi">2,415.60</div>
+                    <div class="delta down">-1.24%</div>
+                </div>
+                <div class="fragment-card" style="border-right: 2px solid var(--lava-accent);">
+                    <div class="label">ADJ. EXCHANGE</div>
+                    <div class="value" id="val-adj">1,310.12</div>
+                    <div class="delta">NEUTRAL</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Fake Data Generator for High-Fidelity UI Demo
+        const generateData = (base, volatility, length) => {
+            let data = [base];
+            for (let i = 1; i < length; i++) {
+                data.push(data[i - 1] + (Math.random() - 0.5) * volatility);
+            }
+            return data;
+        };
+
+        const labels = Array.from({ length: 30 }, (_, i) => `Oct ${i + 1}`);
+        const datasets = [
+            {
+                label: 'USD/KRW',
+                data: generateData(1340, 15, 30),
+                borderColor: '#ff4d00',
+                backgroundColor: 'rgba(255, 77, 0, 0.1)',
+                yAxisID: 'y1',
+                borderWidth: 2,
+                tension: 0.4,
+                hidden: false
+            },
+            {
+                label: 'DXY',
+                data: generateData(106, 2, 30),
+                borderColor: '#d4ff00',
+                borderWidth: 2,
+                yAxisID: 'y2',
+                tension: 0.4,
+                hidden: true
+            },
+            {
+                label: 'FX Reserves',
+                data: generateData(4100, 50, 30),
+                borderColor: '#00f2ff',
+                borderWidth: 2,
+                yAxisID: 'y3',
+                tension: 0.4,
+                hidden: true
+            },
+            {
+                label: 'KOSPI',
+                data: generateData(2400, 40, 30),
+                borderColor: '#ff00f2',
+                borderWidth: 2,
+                yAxisID: 'y1',
+                tension: 0.4,
+                hidden: true
+            },
+            {
+                label: 'KOSDAQ',
+                data: generateData(800, 20, 30),
+                borderColor: '#ffffff',
+                borderWidth: 2,
+                yAxisID: 'y1',
+                tension: 0.4,
+                hidden: true
+            },
+            {
+                label: 'Adjusted Rate',
+                data: generateData(1310, 10, 30),
+                borderColor: '#5555ff',
+                borderDash: [5, 5],
+                borderWidth: 2,
+                yAxisID: 'y1',
+                tension: 0.4,
+                hidden: true
+            }
+        ];
+
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        const mainChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#161618',
+                        titleFont: { family: 'JetBrains Mono' },
+                        bodyFont: { family: 'JetBrains Mono' },
+                        borderColor: '#242426',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 0
+                    }
+                },
+                scales: {
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#666', font: { family: 'JetBrains Mono' } }
+                    },
+                    y2: {
+                        type: 'linear',
+                        display: false,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#666', font: { family: 'JetBrains Mono' } }
+                    },
+                    y3: {
+                        type: 'linear',
+                        display: false,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#666', font: { family: 'JetBrains Mono' } }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#666', font: { family: 'JetBrains Mono' } }
+                    }
+                }
+            }
+        });
+
+        // Toggle Logic
+        document.querySelectorAll('.check-item input').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const index = e.target.getAttribute('data-index');
+                const isChecked = e.target.checked;
+
+                mainChart.data.datasets[index].hidden = !isChecked;
+
+                // Show/Hide Y-axes based on selection
+                if (index == 1) mainChart.options.scales.y2.display = isChecked;
+                if (index == 2) mainChart.options.scales.y3.display = isChecked;
+
+                mainChart.update('none'); // Update without full re-animation for smoothness
+            });
+        });
+
+        // Update timestamp
+        const updateTime = () => {
+            const now = new Date();
+            document.getElementById('timestamp').innerText = now.toISOString().replace('T', ' ').split('.')[0];
+        };
+        setInterval(updateTime, 1000);
+
+        // Entrance animation logic
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.transition = 'opacity 1.5s ease';
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+    </script>
+</body>
+
+</html>
