@@ -1,11 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   CartesianGrid,
   Line,
   LineChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -90,6 +89,32 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
   const seriesList = data ?? [];
 
   const hasAnyPoint = seriesList.some((s) => s.points.length > 0);
+
+  const chartHeight = "clamp(320px, 45vh, 500px)";
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [size, setSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+
+  // ResponsiveContainer 대신 실제 컨테이너 크기를 직접 측정해서
+  // 모바일/서버 환경에서 width/height가 0으로 잡히는 문제를 회피합니다.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const ro = new ResizeObserver((entries) => {
+      const cr = entries[0]?.contentRect;
+      if (!cr) return;
+      setSize((prev) => {
+        const nextW = Math.round(cr.width);
+        const nextH = Math.round(cr.height);
+        if (prev.width === nextW && prev.height === nextH) return prev;
+        return { width: nextW, height: nextH };
+      });
+    });
+
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="chart-placeholder">
@@ -136,12 +161,20 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
 
   const tickCount = Math.min(6, chartData.length || 0);
 
-  const chartHeight = "clamp(320px, 45vh, 500px)";
-
   return (
-    <div style={{ height: chartHeight, width: "100%" }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+    <div ref={containerRef} style={{ height: chartHeight, width: "100%" }}>
+      {size.width <= 0 || size.height <= 0 ? (
+        <div className="chart-placeholder" style={{ height: "100%" }}>
+          <div className="chart-placeholder__title">Loading chart...</div>
+          <div className="chart-placeholder__subtitle">Measuring layout</div>
+        </div>
+      ) : (
+        <LineChart
+          width={size.width}
+          height={size.height}
+          data={chartData}
+          margin={{ top: 10, right: 20, left: 10, bottom: 0 }}
+        >
           <CartesianGrid stroke="rgba(255,255,255,0.08)" />
           <XAxis
             dataKey="time"
@@ -158,7 +191,11 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
             orientation="left"
             domain={
               leftMin !== undefined
-                ? [leftMin, (dataMax: number) => (Number.isFinite(dataMax) ? roundUpToStep(dataMax, 100) : "auto")]
+                ? [
+                    leftMin,
+                    (dataMax: number) =>
+                      Number.isFinite(dataMax) ? roundUpToStep(dataMax, 100) : "auto",
+                  ]
                 : undefined
             }
             tick={{ fill: "#8884d8", fontFamily: "JetBrains Mono, monospace" }}
@@ -172,7 +209,8 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
               rightMin !== undefined
                 ? [
                     rightMin,
-                    (dataMax: number) => (Number.isFinite(dataMax) ? roundUpToStep(dataMax, 100) : "auto"),
+                    (dataMax: number) =>
+                      Number.isFinite(dataMax) ? roundUpToStep(dataMax, 100) : "auto",
                   ]
                 : undefined
             }
@@ -232,7 +270,7 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
               );
             })}
         </LineChart>
-      </ResponsiveContainer>
+      )}
     </div>
   );
 }
