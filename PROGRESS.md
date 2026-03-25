@@ -8,10 +8,10 @@
 - [x] 환경 변수(`.env`) 설정 (ECOS API Key 등)
 
 ## Phase 2: UI 퍼블리싱 및 구조화 (UI & Layout)
-- [ ] `reference_ui/index.html` 기반으로 글로벌 스타일 (`index.css` 등) 이식
-- [ ] 메인 레이아웃 컴포넌트 개발 (Sidebar, Header, Main Display)
-- [ ] Tectonic 디자인 시스템에 맞춘 상태 표시 컴포넌트 (Fragment Card 등) 개발
-- [ ] 기간 선택 (1D, 1W, 1M, 1Y) 및 지표 선택 (Checkbox) UI 구성
+- [x] `reference_ui/index.html` 기반으로 글로벌 스타일 (`index.css` 등) 이식
+- [x] 메인 레이아웃 컴포넌트 개발 (Sidebar, Header, Main Display)
+- [x] Tectonic 디자인 시스템에 맞춘 상태 표시 컴포넌트 (Fragment Card 등) 개발
+- [x] 기간 선택 (1D, 1W, 1M, 1Y) 및 지표 선택 (Checkbox) UI 구성
 
 ## Phase 3: BOK ECOS API 연동 (API Integration)
 - [ ] Next.js Route Handlers (`src/app/api/ecos/route.ts`) 프록시 서버 구현
