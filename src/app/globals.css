@@ -310,3 +310,49 @@ header {
 .delta.neutral {
   color: #888;
 }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .pair-stack {
+    padding: 10px;
+    gap: 16px;
+  }
+
+  .pair-row {
+    display: flex;
+    flex-direction: column;
+    gap: 16px 0;
+  }
+
+  .sidebar {
+    width: 100%;
+    padding: 18px;
+    border-left: none;
+  }
+
+  .sidebar::before {
+    display: none;
+  }
+
+  .control-group {
+    margin-bottom: 20px;
+  }
+
+  .chart-stage {
+    padding: 18px;
+    min-height: 420px;
+  }
+
+  .main-display {
+    gap: 14px;
+  }
+
+  .chart-placeholder__title {
+    font-size: 1rem;
+  }
+
+  .temporal-btn {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+}

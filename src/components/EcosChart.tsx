@@ -136,9 +136,11 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
 
   const tickCount = Math.min(6, chartData.length || 0);
 
+  const chartHeight = "clamp(320px, 45vh, 500px)";
+
   return (
-    <div style={{ height: 500, width: "100%" }}>
-      <ResponsiveContainer width="100%" height={500}>
+    <div style={{ height: chartHeight, width: "100%" }}>
+      <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
           <CartesianGrid stroke="rgba(255,255,255,0.08)" />
           <XAxis
