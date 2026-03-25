@@ -1,10 +1,13 @@
 import React from "react";
 import { ChartStage } from "@/components/ChartStage";
-import { FragmentsGrid } from "@/components/FragmentsGrid";
 import { TectonicHeader } from "@/components/TectonicHeader";
 import { TectonicSidebar } from "@/components/TectonicSidebar";
+import type { PanelId } from "@/store";
 
 export default function Home() {
+  const panel1: PanelId = 1;
+  const panel2: PanelId = 2;
+
   return (
     <div className="tectonic-app">
       {/* Reference UI: grain filter overlay */}
@@ -19,14 +22,20 @@ export default function Home() {
       </svg>
       <div className="noise-overlay" />
 
-      <div className="tectonic-container">
+      <div className="pair-stack">
         <TectonicHeader />
-        <TectonicSidebar />
-
-        <main className="main-display">
-          <ChartStage />
-          <FragmentsGrid />
-        </main>
+        <div className="pair-row">
+          <TectonicSidebar panelId={panel1} />
+          <main className="main-display">
+            <ChartStage panelId={panel1} />
+          </main>
+        </div>
+        <div className="pair-row">
+          <TectonicSidebar panelId={panel2} />
+          <main className="main-display">
+            <ChartStage panelId={panel2} />
+          </main>
+        </div>
       </div>
     </div>
   );

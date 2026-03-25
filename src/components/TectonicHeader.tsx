@@ -27,7 +27,6 @@ export function TectonicHeader() {
   return (
     <header>
       <div className="brand">
-        <p>{"// MACRO_TECTONICS_V1.0"}</p>
         <h1>KRW-INDEX</h1>
       </div>
       <div className="meta-data">

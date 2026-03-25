@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, type CSSProperties } from "react";
-import { useDashboardStore } from "@/store";
+import { useDashboardStore, type PanelId } from "@/store";
 
 type Indicator = {
   id: string;
@@ -18,17 +18,25 @@ const INDICATORS: Indicator[] = [
   { id: "adj-rate", label: "ADJ. Rate (Calibrated)", accentColor: "#5555ff" },
 ];
 
-export function IndicatorSelector() {
-  const selectedIndicators = useDashboardStore((s) => s.selectedIndicators);
-  const toggleIndicator = useDashboardStore((s) => s.toggleIndicator);
+const PANEL_INDICATOR_IDS = ["usd-krw", "fx-res", "kospi", "kosdaq"];
+
+export function IndicatorSelector({ panelId }: { panelId: PanelId }) {
+  const selectedIndicators = useDashboardStore((s) =>
+    panelId === 1 ? s.selectedIndicators1 : s.selectedIndicators2,
+  );
+  const toggleIndicator = useDashboardStore((s) =>
+    panelId === 1 ? s.toggleIndicator1 : s.toggleIndicator2,
+  );
 
   const selectedSet = useMemo(() => new Set(selectedIndicators), [selectedIndicators]);
+  const allowedSet = new Set(PANEL_INDICATOR_IDS);
 
   return (
     <div className="control-group">
       <h3>Select Data Layers</h3>
-      {INDICATORS.map((ind) => {
+      {INDICATORS.filter((ind) => allowedSet.has(ind.id)).map((ind) => {
         const checked = selectedSet.has(ind.id);
+        const checkboxId = `indicator-${panelId}-${ind.id}`;
         return (
           <div
             key={ind.id}
@@ -39,11 +47,11 @@ export function IndicatorSelector() {
           >
             <input
               type="checkbox"
-              id={`indicator-${ind.id}`}
+              id={checkboxId}
               checked={checked}
               onChange={() => toggleIndicator(ind.id)}
             />
-            <label htmlFor={`indicator-${ind.id}`}>{ind.label}</label>
+            <label htmlFor={checkboxId}>{ind.label}</label>
           </div>
         );
       })}

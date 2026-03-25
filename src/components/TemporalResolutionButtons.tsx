@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useState, type CSSProperties } from "react";
-
-type TemporalKey = "1D" | "1W" | "1M" | "1Y";
+import React, { type CSSProperties } from "react";
+import { useDashboardStore, type PanelId, type TemporalKey } from "@/store";
 
 const TEMPORALS: TemporalKey[] = ["1D", "1W", "1M", "1Y"];
 
-export function TemporalResolutionButtons() {
-  const [selected, setSelected] = useState<TemporalKey>("1W");
+export function TemporalResolutionButtons({ panelId }: { panelId: PanelId }) {
+  const temporalKey = useDashboardStore((s) => (panelId === 1 ? s.temporalKey1 : s.temporalKey2));
+  const setTemporalKey = useDashboardStore((s) => (panelId === 1 ? s.setTemporalKey1 : s.setTemporalKey2));
 
   return (
     <div className="control-group">
       <h3>Temporal Resolution</h3>
       <div className="temporal-btn-row" role="group" aria-label="Temporal Resolution">
         {TEMPORALS.map((t) => {
-          const isSelected = t === selected;
+          const isSelected = t === temporalKey;
           return (
             <button
               key={t}
@@ -25,7 +25,7 @@ export function TemporalResolutionButtons() {
                   ["--temporal-accent"]: isSelected ? "var(--lava-accent)" : "var(--basalt-crust)",
                 } as CSSProperties & Record<string, string>
               }
-              onClick={() => setSelected(t)}
+              onClick={() => setTemporalKey(t)}
             >
               {t}
             </button>
