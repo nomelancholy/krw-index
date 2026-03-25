@@ -12,7 +12,7 @@ type Indicator = {
 const INDICATORS: Indicator[] = [
   { id: "usd-krw", label: "USD / KRW", accentColor: "#ff4d00" },
   { id: "dxy", label: "Dollar Index (DXY)", accentColor: "#d4ff00" },
-  { id: "fx-res", label: "FX Reserves", accentColor: "#00f2ff" },
+  { id: "fx-res", label: "외환보유고", accentColor: "#00f2ff" },
   { id: "kospi", label: "KOSPI", accentColor: "#ff00f2" },
   { id: "kosdaq", label: "KOSDAQ", accentColor: "#ffffff" },
   { id: "adj-rate", label: "ADJ. Rate (Calibrated)", accentColor: "#5555ff" },

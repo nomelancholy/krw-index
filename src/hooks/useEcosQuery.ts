@@ -265,7 +265,14 @@ async function fetchIndicatorSeries(params: {
 
     const normalized = normalizeStatisticSearch(upstream, itemCode1);
     if (!normalized.isEmpty) {
-      return { indicatorId, points: normalized.points } satisfies EcosSeries;
+      // fx-res(외환보유고)는 ECOS에서 "천달러" 단위로 들어옵니다.
+      // 차트의 오른쪽 축은 KOSPI/코스닥과 같은 스케일로 보이도록
+      // "억" 단위(= 천달러/100000)로 좌표 값을 정규화합니다.
+      const points =
+        indicatorId === "fx-res"
+          ? normalized.points.map((p) => ({ time: p.time, value: p.value / 100000 }))
+          : normalized.points;
+      return { indicatorId, points } satisfies EcosSeries;
     }
 
     attempt += 1;
@@ -282,7 +289,11 @@ async function fetchIndicatorSeries(params: {
   }
 
   const normalized = lastUpstream ? normalizeStatisticSearch(lastUpstream, itemCode1) : { points: [] as EcosPoint[] };
-  return { indicatorId, points: normalized.points } satisfies EcosSeries;
+  const points =
+    indicatorId === "fx-res"
+      ? normalized.points.map((p) => ({ time: p.time, value: p.value / 100000 }))
+      : normalized.points;
+  return { indicatorId, points } satisfies EcosSeries;
 }
 
 export function useEcosQuery(indicatorIds: string[], temporalKey: TemporalKey) {

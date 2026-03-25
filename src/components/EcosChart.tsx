@@ -21,7 +21,7 @@ const INDICATOR_META: Record<
   }
 > = {
   "usd-krw": { label: "USD/KRW", color: "#ff4d00", axis: "left" },
-  "fx-res": { label: "FX Reserves", color: "#00f2ff", axis: "right" },
+  "fx-res": { label: "외환보유고", color: "#00f2ff", axis: "right" },
   kospi: { label: "KOSPI", color: "#ff00f2", axis: "right" },
   kosdaq: { label: "KOSDAQ", color: "#ffffff", axis: "right" },
 };
@@ -172,8 +172,10 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
   // right axis minimum: if KOSPI/KOSDAQ selected -> 2000, else if only fx-res -> 1000
   const hasKosdaq = indicatorIdsByAxis.right.includes("kosdaq");
   const hasKospi = indicatorIdsByAxis.right.includes("kospi");
+  const hasFxRes = indicatorIdsByAxis.right.includes("fx-res");
 
-  const rightMin = hasKosdaq ? 600 : hasKospi ? 2000 : indicatorIdsByAxis.right.includes("fx-res") ? 1000 : undefined;
+  const fxOnlyRight = hasFxRes && !hasKospi && !hasKosdaq;
+  const rightMin = hasKospi ? 2000 : hasKosdaq ? 600 : fxOnlyRight ? 1000 : undefined;
 
   const tickCount = Math.min(6, chartData.length || 0);
 
@@ -220,12 +222,18 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
                 ? [
                     rightMin,
                     (dataMax: number) =>
-                      Number.isFinite(dataMax) ? roundUpToStep(dataMax, 100) : "auto",
+                      Number.isFinite(dataMax)
+                        ? roundUpToStep(dataMax, fxOnlyRight ? 500 : 100)
+                        : "auto",
                   ]
                 : undefined
             }
             tick={{ fill: "#8884d8", fontFamily: "JetBrains Mono, monospace" }}
-            tickFormatter={(v) => formatNumber(Number(v))}
+            tickFormatter={(v) => {
+              const num = Number(v);
+              if (fxOnlyRight) return `${formatNumber(num)}억`;
+              return formatNumber(num);
+            }}
             allowDecimals={false}
             width={70}
           />
@@ -237,7 +245,14 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
               borderRadius: 6,
             }}
             labelStyle={{ fontFamily: "JetBrains Mono, monospace" }}
-            formatter={(value, name) => [formatNumber(Number(value)), name]}
+            formatter={(value, name) => {
+              const v = Number(value);
+              if (name === INDICATOR_META["fx-res"]?.label) {
+                return [`${formatNumber(v)}억`, name];
+              }
+              const formatted = formatNumber(v);
+              return [formatted, name];
+            }}
           />
 
           {visibleIndicatorIds
@@ -255,7 +270,8 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
                   name={meta.label}
                   stroke={meta.color}
                   strokeWidth={2}
-                  dot={false}
+                  // 데이터가 1개뿐이면 선 경로가 그려지지 않아서 점이라도 보여줌
+                  dot={series.points.length < 2}
                 />
               );
             })}
@@ -275,7 +291,8 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
                   name={meta.label}
                   stroke={meta.color}
                   strokeWidth={2}
-                  dot={false}
+                  // 데이터가 1개뿐이면 선 경로가 그려지지 않아서 점이라도 보여줌
+                  dot={series.points.length < 2}
                 />
               );
             })}
