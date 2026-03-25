@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -94,18 +94,34 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
-  // ResponsiveContainer 대신 실제 컨테이너 크기를 직접 측정해서
-  // 모바일/서버 환경에서 width/height가 0으로 잡히는 문제를 회피합니다.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      const nextW = Math.round(rect.width);
+      const nextH = Math.round(rect.height);
+      setSize((prev) => {
+        if (prev.width === nextW && prev.height === nextH) return prev;
+        return { width: nextW, height: nextH };
+      });
+    };
+
+    // 초기 렌더 직후 1회 측정 (ResizeObserver가 첫 콜백을 늦게 주는 경우를 대비)
+    measure();
+
+    if (typeof ResizeObserver === "undefined") {
+      const t = window.setTimeout(measure, 100);
+      return () => window.clearTimeout(t);
+    }
 
     const ro = new ResizeObserver((entries) => {
       const cr = entries[0]?.contentRect;
       if (!cr) return;
+      const nextW = Math.round(cr.width);
+      const nextH = Math.round(cr.height);
       setSize((prev) => {
-        const nextW = Math.round(cr.width);
-        const nextH = Math.round(cr.height);
         if (prev.width === nextW && prev.height === nextH) return prev;
         return { width: nextW, height: nextH };
       });
@@ -162,19 +178,13 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
   const tickCount = Math.min(6, chartData.length || 0);
 
   return (
-    <div ref={containerRef} style={{ height: chartHeight, width: "100%" }}>
-      {size.width <= 0 || size.height <= 0 ? (
-        <div className="chart-placeholder" style={{ height: "100%" }}>
-          <div className="chart-placeholder__title">Loading chart...</div>
-          <div className="chart-placeholder__subtitle">Measuring layout</div>
-        </div>
-      ) : (
-        <LineChart
-          width={size.width}
-          height={size.height}
-          data={chartData}
-          margin={{ top: 10, right: 20, left: 10, bottom: 0 }}
-        >
+    <div ref={containerRef} style={{ height: chartHeight, width: "100%", position: "relative" }}>
+      <LineChart
+        width={size.width > 0 ? size.width : 600}
+        height={size.height > 0 ? size.height : 320}
+        data={chartData}
+        margin={{ top: 10, right: 20, left: 10, bottom: 0 }}
+      >
           <CartesianGrid stroke="rgba(255,255,255,0.08)" />
           <XAxis
             dataKey="time"
@@ -269,8 +279,8 @@ export function EcosChart({ panelId }: { panelId: PanelId }) {
                 />
               );
             })}
-        </LineChart>
-      )}
+      </LineChart>
+
     </div>
   );
 }
