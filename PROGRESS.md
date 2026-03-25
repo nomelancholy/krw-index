@@ -14,10 +14,10 @@
 - [x] 기간 선택 (1D, 1W, 1M, 1Y) 및 지표 선택 (Checkbox) UI 구성
 
 ## Phase 3: BOK ECOS API 연동 (API Integration)
-- [ ] Next.js Route Handlers (`src/app/api/ecos/route.ts`) 프록시 서버 구현
+- [x] Next.js Route Handlers (`src/app/api/ecos/route.ts`) 프록시 서버 구현
 - [ ] BOK ECOS 통계표 코드 매핑 (환율, DXY, 외환보유고, KOSPI/KOSDAQ)
-- [ ] TanStack Query를 활용한 `useEcosQuery` 커스텀 훅 개발 (5분 캐싱 적용)
-- [ ] 데이터 부재 시 직전 영업일 데이터 fallback 처리 로직 구현
+- [x] TanStack Query를 활용한 `useEcosQuery` 커스텀 훅 개발 (5분 캐싱 적용)
+- [x] 데이터 부재 시 직전 영업일 데이터 fallback 처리 로직 구현
 
 ## Phase 4: 데이터 시각화 (Charting)
 - [ ] Chart 컴포넌트를 생성하고 선택된 지표에 맞춰 Multi-Layer 그래프 렌더링
